@@ -6,11 +6,20 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     apple.ay = 25 * Math.sin(angle)
     apple.ax = 25 * Math.cos(angle)
     fireball.setFlag(SpriteFlag.Invisible, false)
+    rocketflag = 1
 })
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     angle += 15 * (3.14 / 180)
 })
 scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.darkGroundNorthWest1, function (sprite, location) {
+    if (Math.abs(apple.vx) != 20 || apple.vy > 50) {
+        game.over(false)
+    } else {
+        if (landingFlag == 0) {
+            fuel += 100
+            landingFlag = 1
+        }
+    }
     apple.setVelocity(0, -1)
 })
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
@@ -19,10 +28,17 @@ controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
 controller.A.onEvent(ControllerButtonEvent.Released, function () {
     apple.ay = 20
     fireball.setFlag(SpriteFlag.Invisible, true)
+    rocketflag = 0
 })
 let apple: Sprite = null
 let angle = 0
 let fireball: Sprite = null
+let landingFlag = 0
+let rocketflag = 0
+let fuel = 1000
+let fuelSprite = textsprite.create(convertToText(fuel))
+rocketflag = 0
+landingFlag = 0
 fireball = sprites.create(img`
     . . . . . . . . . . . . . . . . 
     . . . . . . 4 4 4 4 . . . . . . 
@@ -73,6 +89,9 @@ apple.ay = 20
 let myMinimap = minimap.minimap(MinimapScale.Eighth, 2, 0)
 let minimap2 = sprites.create(minimap.getImage(myMinimap), SpriteKind.map)
 game.onUpdate(function () {
+    fuelSprite.destroy()
+    fuelSprite = textsprite.create(convertToText(fuel))
+    fuelSprite.setPosition(apple.x, apple.top)
     minimap2.destroy()
     myMinimap = minimap.minimap(MinimapScale.Eighth, 2, 0)
     minimap.includeSprite(myMinimap, apple, MinimapSpriteScale.MinimapScale)
@@ -80,4 +99,10 @@ game.onUpdate(function () {
     minimap2.setPosition(apple.x - 50, apple.y - 30)
     engine.setPosition(apple.x + -8 * Math.cos(angle), apple.y + -8 * Math.sin(angle))
     fireball.setPosition(apple.x + -8 * Math.cos(angle), apple.y + -8 * Math.sin(angle))
+    if (rocketflag == 1) {
+        fuel += -1
+        if (apple.y == 150) {
+            landingFlag = 0
+        }
+    }
 })
